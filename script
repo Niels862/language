@@ -1,5 +1,0 @@
-array = [1, 2, 3]; # We don't do multi dimensional arrays here btw;
-print (array at 1);
-not_array = ((array - "[") - "]");
-print not_array;
-print (not_array at 1);

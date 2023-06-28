@@ -1,0 +1,5 @@
+"spaces in variable names are cool right" = 5;
+print "spaces in variable names are cool right";
+
+[or, arrays, as, names, ?] = 42;
+print [or, arrays, as, names, ?];
