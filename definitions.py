@@ -1,3 +1,4 @@
+from random import randint
 
 
 class DefBase:
@@ -73,7 +74,7 @@ class DefInfixBinaryOperation(DefInfixBinary):
 
 class DefValue(DefBase):
     def __init__(self, value):
-        super().__init__(lambda program: value)
+        super().__init__(lambda stmt, program: value)
         if value.startswith("0b") and len(value) > 2 and all(c in "01" for c in value[2:]):
             self.value = str(int(value[2:], 2))
         elif value.startswith("0x") and len(value) > 2 and all(c.lower() in "01234567890abcdef" for c in value[2:]):
@@ -89,6 +90,13 @@ class DefValue(DefBase):
 
     def __bool__(self):
         return self.value not in ["", "0"]
+
+
+class DefFunc(DefBase):
+    def __init__(self, args, block):
+        super().__init__(lambda *v: 0)
+        self.args = args
+        self.block = block
 
 
 class DefBlock(DefBase):
@@ -176,10 +184,11 @@ def cb_at(stmt, program):
     right = program.get_def(stmt[2])
     if not isinstance(left, DefValue) or not isinstance(right, DefValue):
         raise ValueError("Expected Value")
-    if not right.value.isnumeric():
+    try:
+        index = int(right.value)
+    except ValueError:
         raise ValueError("Expected Number")
     value = left.value
-    index = int(right.value)
     if value.startswith("[") and value.endswith("]"):
         array = value[1:-1].split(",")
         return array[index % len(array)].strip()
@@ -201,6 +210,29 @@ def cb_lengthof(stmt, program):
     if value.startswith("[") and value.endswith("]"):
         return len(value.split(","))
     return DefValue(str(len(value)))
+
+
+def cb_func(stmt, program):
+    name = stmt.get(1)
+    if not isinstance(name, str):
+        raise ValueError("Function name should be string")
+    args = []
+    for arg in stmt.get(2):
+        if not isinstance(arg, str):
+            raise ValueError("Function arg name should be string")
+        args.append(arg)
+    program.set_def(name, DefFunc(name, args))
+
+
+def cb_random(stmt, program):
+    value = program.get_def(stmt[1])
+    if not isinstance(value, DefValue):
+        raise ValueError("Expected Value")
+    try:
+        value = int(value.value)
+    except ValueError:
+        raise ValueError("Expected Number")
+    return DefValue(str(randint(0, value)))
 
 
 def op_add(left, right):
@@ -249,5 +281,7 @@ def get_default_defs():
         "at": DefInfixBinary(cb_at),
         "for": DefBlock(cb_for, lambda stmt, program, place: len(stmt) == 5 and place == 0),
         "lengthof": DefPrefixUnary(cb_lengthof),
-        "none": DefValue("")
-    }
+        "none": DefValue(""),
+        "func": DefBlock(cb_func, lambda stmt, program, place: len(stmt) == 4 and place == 0),
+        "random": DefPrefixUnary(cb_random)
+     }
