@@ -1,0 +1,35 @@
+word = "hello";
+length = (lengthof word);
+mistakes = 0;
+guessed = none;
+for (i = 0) (i < length) (i = (i + 1)) {
+	guessed = (guessed + .);
+};
+while ((guessed != word) && (mistakes < 11)) {
+	print Mistakes: mistakes;
+	print Guessed: guessed;
+	input in;
+	word_new = none;
+	right = 0;
+	if_else ((lengthof in) == 1) {
+		for (i = 0) (i < length) (i = (i + 1)) {
+			if_else ((guessed at i) != .) {
+				word_new = (word_new + (guessed at i));
+			} {
+				if_else ((word at i) == in) {
+					word_new = (word_new + in);
+					right = (right + 1);
+				} {
+					word_new = (word_new + .);
+				};
+			};
+		};
+		guessed = word_new;
+		if (right == 0) {
+			mistakes = (mistakes + 1);
+		};
+	} {
+		print Only give one character!;
+	};
+};
+print Word was word;

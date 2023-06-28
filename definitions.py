@@ -65,7 +65,7 @@ class DefInfixBinaryOperation(DefInfixBinary):
         try:
             right = int(right.value)
         except ValueError:
-            rig = right.value
+            right = right.value
         if self.num_only and (not isinstance(left, int) or not isinstance(right, int)):
             raise ValueError("Expected Numbers")
         return DefValue(str(self.operation(left, right)))
@@ -119,7 +119,7 @@ def cb_assign(stmt, program):
             program.set_def(item, defs[i])
             i = (i + 1) % len(defs)
     else:
-        return program.set_def(stmt[0], program.get_def(stmt[2]))
+        return program.set_def(stmt.get(0), program.get_def(stmt[2]))
     return program.get_def(stmt.get_vargs(0)[0])
 
 
@@ -141,6 +141,12 @@ def cb_print(stmt, program):
     return DefValue("")
 
 
+def cb_input(stmt, program):
+    if not isinstance(stmt[1], str):
+        raise ValueError("Expected String")
+    program.set_def(stmt[1], DefValue(input("> ")))
+
+
 def cb_while(stmt, program):
     while stmt[1]:
         _ = stmt[2]
@@ -153,9 +159,9 @@ def cb_if(stmt, program):
 
 def cb_if_else(stmt, program):
     if stmt[1]:
-        return stmt[2]
+        _ = stmt[2]
     else:
-        return stmt[3]
+        _ = stmt[3]
 
 
 def cb_using(stmt, program):
@@ -187,6 +193,16 @@ def cb_for(stmt, program):
         _ = stmt[3]
 
 
+def cb_lengthof(stmt, program):
+    value = program.get_def(stmt[1])
+    if not isinstance(value, DefValue):
+        raise ValueError("Expected Value")
+    value = value.value
+    if value.startswith("[") and value.endswith("]"):
+        return len(value.split(","))
+    return DefValue(str(len(value)))
+
+
 def op_add(left, right):
     if isinstance(left, int) and isinstance(right, int):
         return left + right
@@ -209,18 +225,21 @@ def get_default_defs():
         "delete": DefPrefixUnary(cb_delete),
         "#": DefPrefixVArgs(lambda stmt, program: None),
         "print": DefPrefixVArgs(cb_print),
+        "input": DefPrefixUnary(cb_input),
         "+": DefInfixBinaryOperation(op_add, False),
         "-": DefInfixBinaryOperation(op_sub, False),
         "*": DefInfixBinaryOperation(lambda left, right: left * right),
         "/": DefInfixBinaryOperation(lambda left, right: left // right),
         "%": DefInfixBinaryOperation(lambda left, right: left % right),
         "^": DefInfixBinaryOperation(lambda left, right: left**right),
-        "<": DefInfixBinaryOperation(lambda left, right: boolstring(left < right)),
-        ">": DefInfixBinaryOperation(lambda left, right: boolstring(left > right)),
-        "<=": DefInfixBinaryOperation(lambda left, right: boolstring(left <= right)),
-        ">=": DefInfixBinaryOperation(lambda left, right: boolstring(left >= right)),
-        "==": DefInfixBinaryOperation(lambda left, right: boolstring(left == right)),
-        "!=": DefInfixBinaryOperation(lambda left, right: boolstring(left != right)),
+        "<": DefInfixBinaryOperation(lambda left, right: boolstring(left < right), False),
+        ">": DefInfixBinaryOperation(lambda left, right: boolstring(left > right), False),
+        "<=": DefInfixBinaryOperation(lambda left, right: boolstring(left <= right), False),
+        ">=": DefInfixBinaryOperation(lambda left, right: boolstring(left >= right), False),
+        "==": DefInfixBinaryOperation(lambda left, right: boolstring(left == right), False),
+        "!=": DefInfixBinaryOperation(lambda left, right: boolstring(left != right), False),
+        "&&": DefInfixBinaryOperation(lambda left, right: boolstring(left and right), False),
+        "||": DefInfixBinaryOperation(lambda left, right: boolstring(left or right), False),
         "while": DefBlock(cb_while, lambda stmt, program, place: len(stmt) == 3 and place == 0),
         "if": DefBlock(cb_if, lambda stmt, program, place: len(stmt) == 3 and place == 0),
         "if_else": DefBlock(cb_if_else, lambda stmt, program, place: len(stmt) == 4 and place == 0),
@@ -228,5 +247,7 @@ def get_default_defs():
         "false": DefValue("0"),
         "using": DefPrefixUnary(cb_using),
         "at": DefInfixBinary(cb_at),
-        "for": DefBlock(cb_for, lambda stmt, program, place: len(stmt) == 5 and place == 0)
+        "for": DefBlock(cb_for, lambda stmt, program, place: len(stmt) == 5 and place == 0),
+        "lengthof": DefPrefixUnary(cb_lengthof),
+        "none": DefValue("")
     }
