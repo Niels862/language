@@ -1,0 +1,4 @@
+array = [1, 2, 3];
+print (array at 2);
+not_array = ((array - "[") - "]");
+print not_array;

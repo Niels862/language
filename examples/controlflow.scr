@@ -1,0 +1,18 @@
+# Revolutionary new ideas;
+i = 0;
+print i;
+while (i < 5) {
+	print i;
+	i = (i + 1);
+};
+
+for (j = 0) (j < 5) (j = (j + 1)) {
+	print i;
+}; # Don't forget the semicolons;
+
+if (i < 5) {
+	ptint i;
+};
+
+# Done with loops and conditionals? Just delete them;
+delete (while, if, for);

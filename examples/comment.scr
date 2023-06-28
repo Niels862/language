@@ -1,0 +1,4 @@
+# Don't like the comments?;
+// = #;
+delete #;
+// Better (don't forget the semicolon after a comment);
